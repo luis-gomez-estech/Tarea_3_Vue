@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Tarea 3 - VUE</title>
+
+  <link rel="icon" type="image/png" href="imagenes/logo.ico" /> 
+
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+
+  <link rel="stylesheet" type="text/css" href="css/style.css"> 
+
+</head>
+
+<body>  
+
+  <div class="container">
+
+    <h1>LISTADO DE CANDIDATOS</h1>
+
+    <br>
+
+    <div class="leyenda">
+
+      <p>- Pulsa (fuera del input) la tecla Esc, para resetear todos los votos a cero.</p>
+      <p>- Pulsa (fuera del input) la Tecla +, para incrementar 1 voto a todos los candidatos.</p>
+      <p>- Pulsa (fuera del input) la Tecla -, para restar 1 voto a todos los candidatos</p>
+      <p>- Si en el input se introduce la letra c y se pulsa Enter, se resetean todos los votos a cero</p>
+
+    </div>
+
+
+    <p></p>
+    <p></p>
+
+  <div id="app" class="app">
+
+
+    <label>Introduce un candidato y pulsa Enter para añadir</label>
+
+    <br>
+    <br>
+
+    <!-- Añado @keyup.enter="anadirNombre" al input para que al pulsar enter, llamamos al metodo añadirNombre y con v-model le pasamos el valor introducido en el input-->
+
+    <input type="text" v-model="nombre" @enter="playSound" @keydown.enter="anadirNombre" placeholder="Escribe un nombre">
+
+    <ul class="list-group mt-2">
+
+      <!-- Recorremos el array como en la tarea anterior (aunque en este caso el array hay que crearlo introduciendo datos en el input y con enter iremos guardando y añadiendo nombre) asi le decimos que muestre cada elemeto del array y que nos muestre los atributos que le asignamos en este caso, el nombre y el voto -->
+
+      <li v-for="candidato in arrayCandidatos" class="list-group-item lista">
+
+        <label class="nombre"> {{candidato.nombre}}</label>
+        <label class="votos"> {{candidato.voto}} </label>
+
+        <!-- Creamos un boton para añadir votos y le decimos que cuando se haga click vaya al metodo SumarVotos el cual incrementa en 1 el voto de cada objeto-->
+
+        <button class="botonVotar" @click="SumarUnVotoCandidato($index)">Votar</button>
+
+      </li>
+
+    </ul>
+
+    <br>
+
+    <label v-if="nombre">El candidato más votado es:</label>
+
+    <!-- Aqui vamos a obtener el valor de lo que devuelve el metodo candidatoMasVotado creado en computed-->
+    <p class="masVotado">{{candidatoMasVotado}}</p>
+
+
+  </div>
+
+
+</div>
+
+
+<br>
+
+<!-- SCRIPT -->
+
+<!-- Libreria vue -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/vue/1.0.18/vue.js"> </script>
+
+<!-- Libreria para validar con Vue -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/vue-validator/2.1.5/vue-validator.min.js"></script>
+
+
+<script>
+
+//Importo audios
+
+const addVoto = 'http://soundbible.com/grab.php?id=419&type=mp3';
+const resetTodosVotos = 'http://audiosoundclips.com/wp-content/uploads/2012/01/Electronicsound.mp3';
+const incrementarVotoATodos = 'http://shing.mobile9.com/download/media/702/clink_MaeTbKfe.mp3';
+const restarVotoATodos = 'https://www.pacdv.com/sounds/interface_sound_effects/sound4.mp3';
+const addNuevoCandidato = 'http://soundbible.com/grab.php?id=1073&type=mp3';
+
+new Vue({
+  el:"#app",
+  data: {
+    nombre:'',
+    arrayCandidatos:[] /* Array nuevo que se va a crear */
+
+  },
+
+        // Aqui despues de buscar un buen rato he encontrado que necesitaba declarar un metodo para escuchar eventos de teclado,
+        // es decir, para poder decirme en un metodo, en este caso el metodo onKeyDown, que cuando se pulse una tecla llame a otro metodo, reproduzca audio, etc
+
+        created() {
+          this.onKeyDown = this.onKeyDown.bind(this);
+          document.addEventListener('keydown', this.onKeyDown);
+        },            
+
+        methods: {
+
+            // Igualmente despues de buscar, he encontrado este metodo creo que necesario para reproducir audios (sin el no lo he conseguido hasta que no lo he confgurado), pero igual no es necesario
+
+            playSound (sound) {          
+              var audio = new Audio(sound);
+              audio.play();
+
+            },
+
+            /* Por un lado le digo que si se introduce c en el input, entonces recorre el arrayCandidatos y a cada atributo de cada objeto llamado voto lo pone a cero */
+
+            anadirNombre: function(){
+
+
+              if(this.nombre == "c"){
+                this.arrayCandidatos.forEach(function(element,index){
+                  element.voto = 0;
+                })
+              }
+
+              /* Pero si introducimos algo distinto de c, entonces, va a añadir al arrayCandidatos en este caso el nombre introducido y le va a poner un voto inicial igual a cero */
+
+              else{
+                this.arrayCandidatos.push({nombre:this.nombre, voto : 0});
+                     //this.playSound(sound1);
+                   }
+
+                 },
+
+                 /* Metodo quees llamado  al pulsar el boton Votar, incrementa el voto de ese candidato */
+
+                 SumarUnVotoCandidato: function(index){
+                  this.arrayCandidatos[index].voto++;
+                  this.playSound(addVoto);
+                },
+
+
+
+                /* Metodo para decirle a cada tecla que va a hacer */
+                onKeyDown(e) {
+                  switch (e.keyCode) {
+
+
+              case 13:  this.playSound(addNuevoCandidato); // Si se pulsa la tecla intro reproduce audio
+              break; 
+
+              case 27:  this.EliminarVotos(); // Si se pulsa la tecla Escape (Esc) llama al metodo EliminarVotos y pone a cero los votos de cada candidato y re reproduce audio
+                        this.playSound(resetTodosVotos); // reproduce audio
+                        break; 
+
+              case 107: this.SumarUnVotoATodos(); // Si se pulsa la tecla +, llama al metodo SumarUnVotoATodos y y suma un voto a todos los candidatos
+                        this.playSound(incrementarVotoATodos); // reproduce audio
+                        break; 
+
+              case 109: this.RestarUnVotoATodos(); // Si se pulsa la tecla -, llama al metodo RestarUnVotoATodos y y resta un voto a todos los candidatos
+                        this.playSound(restarVotoATodos); // reproduce audio
+                        break; 
+
+
+                      }
+                    },
+
+
+                    /* Metodo que es llamado al pulsar la tecla Esc para poner a cero los votos de todos los candidatos */
+
+                    EliminarVotos: function(element,index){
+
+                      this.arrayCandidatos.forEach(function(element,index){
+                        element.voto = 0;
+                      })
+
+                    },
+
+                    /* Metodo que es llamado al pulsar la tecla + para poner sumar un voto PERO  todos los candidatos */ 
+
+                    SumarUnVotoATodos: function(element,index){
+
+                      this.arrayCandidatos.forEach(function(element,index){
+                        element.voto ++;
+                      })
+
+                    },
+
+                    RestarUnVotoATodos: function(element,index){
+
+                      this.arrayCandidatos.forEach(function(element,index){
+
+                      // Aqui le digo que mientras cada voto dea mayor de cero, le va a restar uno pero si es cero, lo deja en cero, y no en -1
+                      if(element.voto>0) {
+                        element.voto --;
+                      } else {
+                        element.voto = 0;
+                      }
+                    })
+
+                    },
+
+
+            /* LINK CON KEYCODES PARA DETERMINAR QUE TECLAS SON CON RESPECTO AL CODIGO NUMERICO
+
+            http://www.javascripter.net/faq/keycodes.htm
+
+            */            
+          },
+
+          /* Ahora con computed property obtenemos el candidato mas votado recorriendo el arrayy comparando votos de cada candidato, para devolvernos el nombre del mas votado */
+
+          computed: {
+            candidatoMasVotado:function(){
+              votoMaximo = 0;
+              nombre = "";
+              this.arrayCandidatos.forEach(function (element,index) {
+                if(votoMaximo < element.voto){
+                  votoMaximo = element.voto;
+                  nombre = element.nombre;
+                }
+              });
+              return nombre;
+            }
+          },
+
+
+        });
+
+
+      </script>
+
+    </body>
+    </html>
+
